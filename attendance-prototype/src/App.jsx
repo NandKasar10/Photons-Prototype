@@ -6,8 +6,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/teacher" element={<TeacherDashboard />} />
-        <Route path="/student" element={<StudentPortal />} />
+        <Route path="/Photons-Prototype/teacher" element={<TeacherDashboard />} />
+        <Route path="/Photons-Prototype/student" element={<StudentPortal />} />
       </Routes>
     </BrowserRouter>
   );

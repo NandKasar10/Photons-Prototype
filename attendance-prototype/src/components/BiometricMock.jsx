@@ -8,7 +8,13 @@ const BiometricMock = ({ onVerify }) => {
   useEffect(() => {
     const loadModels = async () => {
       const MODEL_URL = '/models'; // place models in public/models
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      try {
+  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+} catch (err) {
+  console.error('Model load failed:', err);
+  alert('Biometric model failed to load. Please check your internet or model files.');
+}
+
     };
 
     const startVideo = () => {
