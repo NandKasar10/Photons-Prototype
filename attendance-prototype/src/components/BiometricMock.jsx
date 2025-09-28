@@ -1,53 +1,64 @@
 import { useEffect, useRef, useState } from 'react';
-import * as faceapi from 'face-api.js';
 
 const BiometricMock = ({ onVerify }) => {
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const [verified, setVerified] = useState(false);
 
   useEffect(() => {
-    const loadModels = async () => {
-      const MODEL_URL = '/models'; // place models in public/models
+    const startCamera = async () => {
       try {
-  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-} catch (err) {
-  console.error('Model load failed:', err);
-  alert('Biometric model failed to load. Please check your internet or model files.');
-}
-
-    };
-
-    const startVideo = () => {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-        .then((stream) => {
-          videoRef.current.srcObject = stream;
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
         });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        console.error('Camera access failed:', err);
+        alert('Camera access denied ❌');
+      }
     };
 
-    loadModels().then(startVideo);
+    startCamera();
   }, []);
 
-  const handleScan = async () => {
-    const result = await faceapi.detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions());
-    if (result) {
-      setVerified(true);
-      onVerify(true);
-    } else {
-      alert('Face not detected ❌');
-    }
+  const handleCapture = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData = canvas.toDataURL('image/png');
+    localStorage.setItem('faceImage', imageData); // ✅ Save to localStorage
+
+    setVerified(true);
+    onVerify(true);
   };
 
   return (
-    <div className="p-4 flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <h2 className="text-xl font-bold mb-4">Biometric Verification</h2>
-      <video ref={videoRef} autoPlay muted className="w-64 h-48 rounded shadow" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      <h2 className="text-xl font-bold mb-4">Biometric Verification (Live Scan)</h2>
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        className="w-64 h-48 rounded shadow border mb-4"
+      />
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
       <button
-        onClick={handleScan}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+        onClick={handleCapture}
+        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
-        Verify Face
+        OK / Scan Face
       </button>
-      {verified && <p className="mt-4 text-green-600 font-semibold">Verified ✅</p>}
+      {verified && (
+        <p className="mt-4 text-green-600 font-semibold">Verified & Saved ✅</p>
+      )}
     </div>
   );
 };
