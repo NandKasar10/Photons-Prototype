@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+* {
+  opacity: 1 !important;
+}
+

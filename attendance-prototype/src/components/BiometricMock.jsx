@@ -1,63 +1,45 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 const BiometricMock = ({ onVerify }) => {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+  const [scanning, setScanning] = useState(false);
   const [verified, setVerified] = useState(false);
 
-  useEffect(() => {
-    const startCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' },
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        console.error('Camera access failed:', err);
-        alert('Camera access denied ❌');
-      }
-    };
+  const handleScan = () => {
+    setScanning(true);
 
-    startCamera();
-  }, []);
-
-  const handleCapture = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const imageData = canvas.toDataURL('image/png');
-    localStorage.setItem('faceImage', imageData); // ✅ Save to localStorage
-
-    setVerified(true);
-    onVerify(true);
+    // Simulate fingerprint scan delay
+    setTimeout(() => {
+      setScanning(false);
+      setVerified(true);
+      localStorage.setItem('fingerprintVerified', 'true');
+      onVerify(true);
+    }, 2000);
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <h2 className="text-xl font-bold mb-4">Biometric Verification (Live Scan)</h2>
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        className="w-64 h-48 rounded shadow border mb-4"
-      />
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+      <h2 className="text-xl font-bold mb-4">🔒 Fingerprint Verification</h2>
+
+      <div className="w-32 h-32 bg-gradient-to-br from-purple-300 to-indigo-400 rounded-full flex items-center justify-center shadow-lg mb-6">
+        {scanning ? (
+          <div className="animate-pulse text-white font-bold">Scanning...</div>
+        ) : (
+          <div className="text-white text-3xl">🧤</div>
+        )}
+      </div>
+
       <button
-        onClick={handleCapture}
-        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        onClick={handleScan}
+        disabled={scanning}
+        className={`px-6 py-2 text-white rounded ${
+          scanning ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+        } transition`}
       >
-        OK / Scan Face
+        {scanning ? 'Scanning...' : 'Place Finger to Scan'}
       </button>
+
       {verified && (
-        <p className="mt-4 text-green-600 font-semibold">Verified & Saved ✅</p>
+        <p className="mt-4 text-green-600 font-semibold">Fingerprint Verified ✅</p>
       )}
     </div>
   );

@@ -1,63 +1,117 @@
-import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Html5Qrcode, Html5QrcodeScanner } from 'html5-qrcode';
 
 const StudentScan = () => {
-  const [sessionId, setSessionId] = useState('');
   const navigate = useNavigate();
+  const [mode, setMode] = useState("camera"); // "camera" or "upload"
 
   useEffect(() => {
-    const scanner = new Html5QrcodeScanner('qr-reader', {
-      fps: 10,
-      qrbox: 250,
-    });
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'student') {
+      navigate('/login/student');
+    }
 
-    scanner.render(
-      (decodedText) => {
-        setSessionId(decodedText);
-        localStorage.setItem('scannedSession', decodedText);
-        scanner.clear();
-      },
-      (error) => {
-        console.warn('QR scan error:', error);
-      }
-    );
+    if (mode === "camera") {
+      const scanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        false
+      );
 
-    return () => scanner.clear();
-  }, []);
+      scanner.render(
+        (decodedText) => {
+          alert(`QR Scanned ✅: ${decodedText}`);
+          localStorage.setItem("scannedSession", decodedText);
+          scanner.clear();
+          navigate('/student');
+        },
+        (err) => console.warn("Scan error:", err)
+      );
 
-  const handleImageUpload = (e) => {
+      return () => {
+        scanner.clear().catch(() => {});
+      };
+    }
+  }, [mode, navigate]);
+
+  // Handle file upload
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      Html5Qrcode.getCameras().then(() => {
-        const qr = new Html5Qrcode('qr-reader');
-        qr.scanFile(file, true)
-          .then((decodedText) => {
-            setSessionId(decodedText);
-            localStorage.setItem('scannedSession', decodedText);
-          })
-          .catch((err) => console.error('Image scan error:', err));
-      });
+    if (!file) return;
+
+    const html5QrCode = new Html5Qrcode("reader");
+    try {
+      const result = await html5QrCode.scanFile(file, true);
+      alert(`QR from Image ✅: ${result}`);
+      localStorage.setItem("scannedSession", result);
+      navigate('/student');
+    } catch (err) {
+      alert("❌ Could not scan QR from image");
+      console.error(err);
     }
   };
 
-  const handleNext = () => {
-    if (!sessionId) return alert('Scan QR first ❌');
-    navigate('/student/face');
-  };
-
   return (
-    <div className="min-h-screen bg-blue-50 p-6 flex flex-col items-center">
-      <h2 className="text-2xl font-bold text-blue-700 mb-4">📷 Scan QR Code</h2>
-      <div id="qr-reader" className="w-72 h-72 mb-4" />
-      <input type="file" accept="image/*" onChange={handleImageUpload} className="mb-4" />
-      {sessionId && <p className="text-green-700 font-semibold mb-2">Session ID: {sessionId}</p>}
-      <button
-        onClick={handleNext}
-        className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-      >
-        Next: Face Scan
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex flex-col items-center justify-center font-comic text-white p-6">
+      <div className="bg-black/40 backdrop-blur-md p-8 rounded-xl shadow-lg w-full max-w-lg text-center">
+        <h2 className="text-3xl font-bold text-green-300 mb-4">📷 Scan QR Code</h2>
+        <p className="text-gray-300 mb-6">
+          Choose a method to scan your attendance QR code.
+        </p>
+
+        {/* Mode Switch */}
+        <div className="flex justify-center gap-4 mb-6">
+          <button
+            onClick={() => setMode("camera")}
+            className={`px-4 py-2 rounded font-semibold transition ${
+              mode === "camera"
+                ? "bg-green-500 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            📷 Camera
+          </button>
+          <button
+            onClick={() => setMode("upload")}
+            className={`px-4 py-2 rounded font-semibold transition ${
+              mode === "upload"
+                ? "bg-green-500 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            📂 Upload
+          </button>
+        </div>
+
+        {/* Scanner / Upload UI */}
+        {mode === "camera" ? (
+          <div
+            id="reader"
+            className="w-full h-72 rounded-lg overflow-hidden border border-gray-600 shadow mb-6 bg-black"
+          ></div>
+        ) : (
+          <div className="mb-6">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4
+                         file:rounded file:border-0 file:text-sm file:font-semibold
+                         file:bg-green-500 file:text-white hover:file:bg-green-600"
+            />
+            <div id="reader" className="hidden"></div>
+          </div>
+        )}
+
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/student')}
+          className="px-6 py-2 bg-red-500 hover:bg-red-600 rounded text-white font-semibold transition"
+        >
+          ← Back
+        </button>
+      </div>
     </div>
   );
 };

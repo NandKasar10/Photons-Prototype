@@ -9,6 +9,7 @@ import QRGenerator from './pages/QRGenerator.jsx';
 import StudentScan from './pages/StudentScan.jsx';
 import FaceScan from './pages/FaceScan.jsx';
 import CursorFollower from './components/CursorFollower.jsx';
+import BiometricMock from './components/BiometricMock.jsx';
 
 function App() {
   return (
@@ -29,6 +30,8 @@ function App() {
         {/* Protected Routes (redirect handled inside components) */}
         <Route path="/student" element={<StudentPortal />} />
         <Route path="/teacher" element={<TeacherDashboard />} />
+        <Route path="/student/fingerprint" element={<BiometricMock onVerify={() => console.log('Verified')} />} />
+
       </Routes>
     </BrowserRouter>
     </>

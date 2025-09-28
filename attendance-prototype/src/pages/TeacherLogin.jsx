@@ -1,64 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const TeacherLogin = () => {
-  const [username, setUsername] = useState('teacher1');
-  const [password, setPassword] = useState('abcd');
   const navigate = useNavigate();
+  const [form, setForm] = useState({ username: '', password: '' });
 
-  useEffect(() => {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    if (users.length === 0) {
-      const defaultUsers = [
-        { username: 'student1', password: '1234', role: 'student' },
-        { username: 'teacher1', password: 'abcd', role: 'teacher' },
-      ];
-      localStorage.setItem('users', JSON.stringify(defaultUsers));
-    }
-  }, []);
-
-  const handleLogin = () => {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const match = users.find(
-      (u) => u.username === username && u.password === password && u.role === 'teacher'
-    );
-
-    if (match) {
-      localStorage.setItem('user', JSON.stringify(match));
-      navigate('/teacher');
-    } else {
-      alert('Invalid teacher credentials ❌');
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Dummy login logic
+    localStorage.setItem('user', JSON.stringify({ role: 'teacher', username: form.username }));
+    navigate('/teacher');
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-purple-50">
-      <h2 className="text-2xl font-bold text-purple-700 mb-4">Teacher Login</h2>
-      <input
-        type="text"
-        id="teacher-username"
-        name="username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
-        className="mb-2 px-4 py-2 border rounded w-64"
-      />
-      <input
-        type="password"
-        id="teacher-password"
-        name="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        className="mb-4 px-4 py-2 border rounded w-64"
-      />
-      <button
-        type="button"
-        onClick={handleLogin}
-        className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-      >
-        Login as Teacher
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center font-comic text-white">
+      <div className="bg-black/40 backdrop-blur-md p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h2 className="text-3xl font-bold text-purple-300 mb-6 text-center">👩‍🏫 Teacher Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Username"
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+            className="w-full px-4 py-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            className="w-full px-4 py-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+          <button
+            type="submit"
+            className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded text-white font-semibold transition"
+          >
+            Login
+          </button>
+        </form>
+        <p className="mt-4 text-sm text-gray-300 text-center">
+          Not registered?{" "}
+          <button onClick={() => navigate('/register')} className="text-purple-300 hover:underline">
+            Create an account
+          </button>
+        </p>
+      </div>
     </div>
   );
 };
