@@ -4,10 +4,10 @@ import StudentPortal from './pages/StudentPortal';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/Photons-Prototype">
       <Routes>
-        <Route path="/Photons-Prototype/teacher" element={<TeacherDashboard />} />
-        <Route path="/Photons-Prototype/student" element={<StudentPortal />} />
+        <Route path="/teacher" element={<TeacherDashboard />} />
+        <Route path="/student" element={<StudentPortal />} />
       </Routes>
     </BrowserRouter>
   );
